@@ -242,13 +242,11 @@ export function SSOButtons({
           )}
           {authProviders.keycloak && (
             <Button
-              onClick={() => {
-                capture("sign_in:button_click", { provider: "keycloak" });
-                void signIn("keycloak");
-              }}
+              onClick={() => handleSignIn("keycloak")}
               variant="secondary"
+              loading={providerSigningIn === "keycloak"}
             >
-              <SiKeycloak className="mr-3" size={18} />
+              <TbBrandOauth className="mr-3" size={18} />
               Keycloak
             </Button>
           )}

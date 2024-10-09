@@ -310,6 +310,9 @@ if (
       clientId: env.AUTH_KEYCLOAK_CLIENT_ID,
       clientSecret: env.AUTH_KEYCLOAK_CLIENT_SECRET,
       issuer: env.AUTH_KEYCLOAK_ISSUER,
+      authorization: {
+        params: { scope: env.AUTH_KEYCLOAK_SCOPE ?? "openid email profile" },
+      },
       allowDangerousEmailAccountLinking:
         env.AUTH_KEYCLOAK_ALLOW_ACCOUNT_LINKING === "true",
     }),
@@ -320,7 +323,18 @@ const prismaAdapter = PrismaAdapter(prisma);
 const ignoredAccountFields = env.AUTH_IGNORE_ACCOUNT_FIELDS?.split(",") ?? [];
 const extendedPrismaAdapter: Adapter = {
   ...prismaAdapter,
-  async createUser(profile: Omit<AdapterUser, "id">) {
+  linkAccount(account) {
+    // Some OAuth providers (Keycloak i.e.) return two fields that fail
+    // downstream on Prima. This removes them.
+    delete account["not-before-policy"];
+    delete account["refresh_expires_in"];
+    if (prismaAdapter.linkAccount) {
+      return prismaAdapter.linkAccount(account);
+    } else {
+      return undefined;
+    }
+  },
+  async createUser(profile) {
     if (!prismaAdapter.createUser)
       throw new Error("createUser not implemented");
     if (
@@ -535,6 +549,13 @@ export async function getAuthOptions(): Promise<NextAuthOptions> {
               // Prevents sign in with email link if user does not exist
               return false;
             }
+          }
+
+          // Only allow sign in if the scope matches
+          if (env.AUTH_KEYCLOAK_SCOPE && account?.provider == "keycloak") {
+            return env.AUTH_KEYCLOAK_SCOPE.split(" ").every((x) =>
+              account?.scope?.split(" ").includes(x),
+            );
           }
 
           // Optional configuration: validate authorised email domains for google provider

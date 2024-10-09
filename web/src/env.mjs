@@ -88,7 +88,8 @@ export const env = createEnv({
     AUTH_COGNITO_ALLOW_ACCOUNT_LINKING: z.enum(["true", "false"]).optional(),
     AUTH_KEYCLOAK_CLIENT_ID: z.string().optional(),
     AUTH_KEYCLOAK_CLIENT_SECRET: z.string().optional(),
-    AUTH_KEYCLOAK_ISSUER: z.string().optional(),
+    AUTH_KEYCLOAK_ISSUER: z.string().url().optional(),
+    AUTH_KEYCLOAK_SCOPE: z.string().optional(),
     AUTH_KEYCLOAK_ALLOW_ACCOUNT_LINKING: z.enum(["true", "false"]).optional(),
     AUTH_CUSTOM_CLIENT_ID: z.string().optional(),
     AUTH_CUSTOM_CLIENT_SECRET: z.string().optional(),
@@ -360,6 +361,7 @@ export const env = createEnv({
     AUTH_KEYCLOAK_CLIENT_ID: process.env.AUTH_KEYCLOAK_CLIENT_ID,
     AUTH_KEYCLOAK_CLIENT_SECRET: process.env.AUTH_KEYCLOAK_CLIENT_SECRET,
     AUTH_KEYCLOAK_ISSUER: process.env.AUTH_KEYCLOAK_ISSUER,
+    AUTH_KEYCLOAK_SCOPE: process.env.AUTH_KEYCLOAK_SCOPE,
     AUTH_KEYCLOAK_ALLOW_ACCOUNT_LINKING:
       process.env.AUTH_KEYCLOAK_ALLOW_ACCOUNT_LINKING,
     AUTH_CUSTOM_CLIENT_ID: process.env.AUTH_CUSTOM_CLIENT_ID,
