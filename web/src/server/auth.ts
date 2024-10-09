@@ -23,6 +23,7 @@ import EmailProvider from "next-auth/providers/email";
 import Auth0Provider from "next-auth/providers/auth0";
 import CognitoProvider from "next-auth/providers/cognito";
 import AzureADProvider from "next-auth/providers/azure-ad";
+import KeycloakProvider from "next-auth/providers/keycloak";
 import { type Provider } from "next-auth/providers/index";
 import { getCookieName, getCookieOptions } from "./utils/cookies";
 import {
@@ -268,10 +269,39 @@ if (
     }),
   );
 
+if (
+  env.AUTH_KEYCLOAK_CLIENT_ID &&
+  env.AUTH_KEYCLOAK_CLIENT_SECRET &&
+  env.AUTH_KEYCLOAK_ISSUER
+)
+  staticProviders.push(
+    KeycloakProvider({
+      clientId: env.AUTH_KEYCLOAK_CLIENT_ID,
+      clientSecret: env.AUTH_KEYCLOAK_CLIENT_SECRET,
+      issuer: env.AUTH_KEYCLOAK_ISSUER,
+      authorization: {
+        params: { scope: env.AUTH_KEYCLOAK_SCOPE ?? "openid email profile" },
+      },
+      allowDangerousEmailAccountLinking:
+        env.AUTH_KEYCLOAK_ALLOW_ACCOUNT_LINKING === "true",
+    }),
+  );
+
 // Extend Prisma Adapter
 const prismaAdapter = PrismaAdapter(prisma);
 const extendedPrismaAdapter: Adapter = {
   ...prismaAdapter,
+  linkAccount(account) {
+    // Some OAuth providers (Keycloak i.e.) return two fields that fail
+    // downstream on Prima. This removes them.
+    delete account["not-before-policy"];
+    delete account["refresh_expires_in"];
+    if (prismaAdapter.linkAccount) {
+      return prismaAdapter.linkAccount(account);
+    } else {
+      return undefined;
+    }
+  },
   async createUser(profile) {
     if (!prismaAdapter.createUser)
       throw new Error("createUser not implemented");
@@ -460,6 +490,13 @@ export async function getAuthOptions(): Promise<NextAuthOptions> {
               // Prevents sign in with email link if user does not exist
               return false;
             }
+          }
+
+          // Only allow sign in if the scope matches
+          if (env.AUTH_KEYCLOAK_SCOPE && account?.provider == "keycloak") {
+            return env.AUTH_KEYCLOAK_SCOPE.split(" ").every((x) =>
+              account?.scope?.split(" ").includes(x),
+            );
           }
 
           // Optional configuration: validate authorised email domains for google provider

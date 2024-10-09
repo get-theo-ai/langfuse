@@ -51,6 +51,7 @@ export type PageProps = {
     azureAd: boolean;
     auth0: boolean;
     cognito: boolean;
+    keycloak: boolean;
     custom:
       | {
           name: string;
@@ -94,6 +95,10 @@ export const getServerSideProps: GetServerSideProps<PageProps> = async () => {
           env.AUTH_COGNITO_CLIENT_ID !== undefined &&
           env.AUTH_COGNITO_CLIENT_SECRET !== undefined &&
           env.AUTH_COGNITO_ISSUER !== undefined,
+        keycloak:
+          env.AUTH_KEYCLOAK_CLIENT_ID !== undefined &&
+          env.AUTH_KEYCLOAK_CLIENT_SECRET !== undefined &&
+          env.AUTH_KEYCLOAK_ISSUER !== undefined,
         custom:
           env.AUTH_CUSTOM_CLIENT_ID !== undefined &&
           env.AUTH_CUSTOM_CLIENT_SECRET !== undefined &&
@@ -213,6 +218,16 @@ export function SSOButtons({
             >
               <SiAmazoncognito className="mr-3" size={18} />
               Cognito
+            </Button>
+          )}
+          {authProviders.keycloak && (
+            <Button
+              onClick={() => handleSignIn("keycloak")}
+              variant="secondary"
+              loading={providerSigningIn === "keycloak"}
+            >
+              <TbBrandOauth className="mr-3" size={18} />
+              Keycloak
             </Button>
           )}
           {authProviders.custom && (
