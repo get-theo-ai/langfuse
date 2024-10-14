@@ -54,10 +54,13 @@ const nextConfig = {
     serverComponentsExternalPackages: [
       "dd-trace",
       "@opentelemetry/api",
+      "@opentelemetry/exporter-jaeger",
+      "@opentelemetry/winston-transport",
       "@appsignal/opentelemetry-instrumentation-bullmq",
       "bullmq",
       "@opentelemetry/sdk-node",
       "@opentelemetry/instrumentation-winston",
+      "kysely",
       "kysely",
     ],
   },
