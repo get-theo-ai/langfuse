@@ -51,7 +51,10 @@ const nextConfig = {
     serverComponentsExternalPackages: [
       "dd-trace",
       "@opentelemetry/api",
+      "@opentelemetry/exporter-jaeger",
+      "@opentelemetry/winston-transport",
       "@appsignal/opentelemetry-instrumentation-bullmq",
+      "kysely",
     ],
   },
   poweredByHeader: false,
